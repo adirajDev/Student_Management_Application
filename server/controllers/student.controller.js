@@ -3,7 +3,8 @@ let nextId = 1;
 
 // Fetch all students
 export const getStudents = (req, res) => {
-    res.status(200).json(students);
+    const sortedStudents = [...students].sort((a, b) => a.name.localeCompare(b.name));
+    res.status(200).json(sortedStudents);
 };
 
 // Add a new student
@@ -18,6 +19,15 @@ export const createStudent = (req, res) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         return res.status(400).json({ error: 'Invalid email format.' });
+    }
+
+    // Check email is unique
+    const emailExists = students.some(
+        student => student.email.toLowerCase() === email.toLowerCase()
+    );
+
+    if (emailExists) {
+        return res.status(409).json({ error: 'A student with this email already exists.' });
     }
 
     // Create and store

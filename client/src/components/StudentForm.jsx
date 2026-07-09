@@ -8,17 +8,36 @@ const StudentForm = ({ onAdd }) => {
     });
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData({
+            ...formData,
+            [e.target.id]: e.target.value,
+        });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Basic frontend validation visualization
-        if (!formData.name || !formData.email || !formData.course) return; //
         
+        const { name, email, course } = formData;
+
+        // Ensure fields aren't empty
+        if (!name.trim() || !email.trim() || !course.trim()) {
+            setValidationError('All fields are mandatory. Please fill out the form entirely.');
+            return;
+        }
+
+        // Check email formatting via regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            setValidationError('Please enter a valid email address.');
+            return;
+        }
+        
+        // Pass data to Main.jsx
         onAdd(formData);
-        setFormData({ name: '', email: '', course: '' }); // Reset form
+        
+        // Reset form on success
+        setFormData({ name: '', email: '', course: '' });
+        setValidationError('');
     };
 
     return (
@@ -37,7 +56,7 @@ const StudentForm = ({ onAdd }) => {
                         value={formData.name}
                         onChange={handleChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                        placeholder="e.g. Rahul"
+                        placeholder="Student Name"
                         required
                     />
                 </div>
@@ -53,7 +72,7 @@ const StudentForm = ({ onAdd }) => {
                         value={formData.email}
                         onChange={handleChange}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                        placeholder="e.g. rahul@gmail.com"
+                        placeholder="email@mail.com"
                         required
                     />
                 </div>
