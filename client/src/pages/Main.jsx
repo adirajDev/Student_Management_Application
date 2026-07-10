@@ -6,6 +6,9 @@ const Main = () => {
     const [students, setStudents] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [editingStudent, setEditingStudent] = useState(null);
+
+    // console.log(editingStudent);
 
     const API_URL = 'http://localhost:5000/students';
 
@@ -38,6 +41,7 @@ const Main = () => {
         // return () => clearInterval(intervalId);
     }, []);
 
+    // POST request to add new student
     const handleAddStudent = async (newStudent) => {
         try {
             const response = await fetch(API_URL, {
@@ -64,6 +68,35 @@ const Main = () => {
         }
     };
 
+    // PUT request to update an existing student
+    const handleUpdateStudent = async (id, updatedData) => {
+        console.log("update function called")
+        try {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to update student.');
+            }
+
+            const updatedStudent = await response.json();
+            
+            // Instantly update the UI and re-sort
+            setStudents((prev) => 
+                prev.map(student => student.id === id ? updatedStudent : student)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+            );
+            
+            setEditingStudent(null);
+        } catch (err) {
+            alert(`Error: ${err.message}`);
+        }
+    };
+
     const handleDeleteStudent = async (id) => {
         try {
             const response = await fetch(`${API_URL}/${id}`, {
@@ -85,7 +118,12 @@ const Main = () => {
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Form */}
             <div className="lg:col-span-1">
-                <StudentForm onAdd={handleAddStudent} />
+                <StudentForm 
+                    editingStudent={editingStudent}
+                    onAdd={handleAddStudent} 
+                    onUpdate={handleUpdateStudent} 
+                    onCancelEdit={() => setEditingStudent(null)}
+                />
             </div>
 
             {/* Right Column: Data Table */}
@@ -95,6 +133,7 @@ const Main = () => {
                     isLoading={isLoading} 
                     error={error} 
                     onDelete={handleDeleteStudent} 
+                    onEdit={setEditingStudent}
                 />
             </div>
         </main>

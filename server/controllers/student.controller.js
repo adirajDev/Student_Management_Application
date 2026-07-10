@@ -43,6 +43,42 @@ export const createStudent = (req, res) => {
     res.status(201).json(newStudent);
 };
 
+export const updateStudent = (req, res) => {
+    const studentId = parseInt(req.params.id, 10);
+    const { name, email, course } = req.body;
+
+    // Find if the student exists
+    const studentIndex = students.findIndex(s => s.id === studentId);
+    if (studentIndex === -1) {
+        return res.status(404).json({ error: 'Student not found.' });
+    }
+
+    // Validation: Check for missing fields
+    if (!name || !email || !course) {
+        return res.status(400).json({ error: 'Name, email, and course are required.' });
+    }
+
+    // Validation: Email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Invalid email format.' });
+    }
+
+    // Validation: Unique Email Check (ignore the current student's own email)
+    const emailExists = students.some(
+        student => student.email.toLowerCase() === email.toLowerCase() && student.id !== studentId
+    );
+    
+    if (emailExists) {
+        return res.status(409).json({ error: 'A student with this email already exists.' });
+    }
+
+    // Update the student in the array
+    students[studentIndex] = { ...students[studentIndex], name, email, course };
+    
+    res.status(200).json(students[studentIndex]);
+};
+
 // Delete a student
 export const deleteStudent = (req, res) => {
     const studentId = parseInt(req.params.id, 10);

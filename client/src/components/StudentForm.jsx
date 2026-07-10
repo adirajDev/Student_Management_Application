@@ -1,11 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const StudentForm = ({ onAdd }) => {
+const StudentForm = ({ onAdd, onUpdate, students, editingStudent, onCancelEdit }) => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         course: ''
     });
+    const [validationError, setValidationError] = useState('');
+
+    useEffect(() => {
+        if (editingStudent) {
+            setFormData({
+                name: editingStudent.name,
+                email: editingStudent.email,
+                course: editingStudent.course
+            });
+            setValidationError('');
+        } else {
+            setFormData({ name: '', email: '', course: '' });
+        }
+    }, [editingStudent]);
 
     const handleChange = (e) => {
         setFormData({
@@ -14,35 +28,52 @@ const StudentForm = ({ onAdd }) => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         
         const { name, email, course } = formData;
 
-        // Ensure fields aren't empty
         if (!name.trim() || !email.trim() || !course.trim()) {
             setValidationError('All fields are mandatory. Please fill out the form entirely.');
             return;
         }
 
-        // Check email formatting via regex
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             setValidationError('Please enter a valid email address.');
             return;
         }
         
-        // Pass data to Main.jsx
-        onAdd(formData);
-        
-        // Reset form on success
-        setFormData({ name: '', email: '', course: '' });
-        setValidationError('');
+        try {
+            // Await the API calls so we know if they succeed or fail
+            if (editingStudent) {
+                await onUpdate(editingStudent.id, formData);
+            } else {
+                await onAdd(formData);
+            }
+            
+            // Only reset form if the API call succeeds
+            setFormData({ name: '', email: '', course: '' });
+            setValidationError('');
+        } catch (err) {
+            // Catch the backend error and display it in the form
+            setValidationError(err.message);
+        }
     };
 
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-semibold mb-5 text-gray-800">Add New Student</h2>
+            {/* Dynamic Title */}
+            <h2 className="text-xl font-semibold mb-5 text-gray-800">
+                {editingStudent ? 'Edit Student' : 'Add New Student'}
+            </h2>
+            
+            {/* Render the error message if it exists */}
+            {validationError && (
+                <div className="mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm">
+                    {validationError}
+                </div>
+            )}
             
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -93,12 +124,25 @@ const StudentForm = ({ onAdd }) => {
                     />
                 </div>
 
-                <button
-                    type="submit"
-                    className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition duration-200"
-                >
-                    Add Student
-                </button>
+                <div className="flex gap-3 mt-4">
+                    <button
+                        type="submit"
+                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-lg transition duration-200"
+                    >
+                        {editingStudent ? 'Update Student' : 'Add Student'}
+                    </button>
+                    
+                    {/* Render a cancel button when editing */}
+                    {editingStudent && (
+                        <button
+                            type="button"
+                            onClick={onCancelEdit}
+                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition duration-200"
+                        >
+                            Cancel
+                        </button>
+                    )}
+                </div>
             </form>
         </div>
     );

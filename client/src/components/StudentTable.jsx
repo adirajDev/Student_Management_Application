@@ -1,4 +1,4 @@
-const StudentTable = ({ students, isLoading, error, onDelete }) => {
+const StudentTable = ({ students, isLoading, error, onEdit, onDelete }) => {
     
     // UI State: Loading
     if (isLoading) {
@@ -65,7 +65,18 @@ const StudentTable = ({ students, isLoading, error, onDelete }) => {
                                         {student.course}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-right">
+                                
+                                <td className="px-6 py-4 text-right space-x-4">
+                                    <button
+                                        // onClick={() => onEdit(student)}
+                                        onClick={() => {
+                                            onEdit(student);
+                                        }}
+                                        className="text-indigo-600 hover:text-indigo-900 font-medium text-sm transition"
+                                    >
+                                        Edit
+                                    </button>
+
                                     <button
                                         onClick={() => onDelete(student.id)}
                                         className="text-red-500 hover:text-red-700 font-medium text-sm transition"
