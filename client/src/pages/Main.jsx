@@ -1,129 +1,36 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import StudentForm from '../components/StudentForm';
 import StudentTable from '../components/StudentTable';
+import useStudents from '../hooks/useStudents';
 
 const Main = () => {
-    const [students, setStudents] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const { students, isLoading, error, addStudent, updateStudent, deleteStudent } = useStudents();
     const [editingStudent, setEditingStudent] = useState(null);
 
-    // console.log(editingStudent);
-
-    const API_URL = 'http://localhost:5000/students';
-
-    // Temp fix: set 3 sec timer to reload studentTable
-    // TODO: Use Server-Sent Event method to handle any change in studentTable made by backend to automatically update frontend table
-
-    const fetchStudents = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch(API_URL);
-            if (!response.ok) throw new Error('Failed to fetch students from the server.');
-            
-            const data = await response.json();
-            setStudents(data);
-            setError(null);
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {     
-        fetchStudents();
-
-        // const intervalId = setInterval(() => {
-        //     fetchStudents();
-        // }, 3000);
-
-        // return () => clearInterval(intervalId);
-    }, []);
-
-    // POST request to add new student
-    const handleAddStudent = async (newStudent) => {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(newStudent),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to add student.');
-        }
-
-        const createdStudent = await response.json();
-
-        setStudents((prevStudents) => {
-            const updatedList = [...prevStudents, createdStudent];
-            return updatedList.sort((a, b) => a.name.localeCompare(b.name));
-        });
-    };
-
-    // PUT request to update an existing student
     const handleUpdateStudent = async (id, updatedData) => {
-        const response = await fetch(`${API_URL}/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedData),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to update student.');
-        }
-
-        const updatedStudent = await response.json();
-        
-        // Instantly update the UI and re-sort
-        setStudents((prev) => 
-            prev.map(student => student.id === id ? updatedStudent : student)
-                .sort((a, b) => a.name.localeCompare(b.name))
-        );
-            
+        await updateStudent(id, updatedData);
         setEditingStudent(null);
-    };
-
-    const handleDeleteStudent = async (id) => {
-        try {
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete student.');
-            }
-
-            // Filter out the deleted student from local state
-            setStudents(students.filter(student => student.id !== id));
-        } catch (err) {
-            alert(`Error: ${err.message}`);
-        }
     };
 
     return (
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column: Form */}
             <div className="lg:col-span-1">
-                <StudentForm 
+                <StudentForm
                     editingStudent={editingStudent}
-                    onAdd={handleAddStudent} 
-                    onUpdate={handleUpdateStudent} 
+                    onAdd={addStudent}
+                    onUpdate={handleUpdateStudent}
                     onCancelEdit={() => setEditingStudent(null)}
                 />
             </div>
 
             {/* Right Column: Data Table */}
             <div className="lg:col-span-2">
-                <StudentTable 
-                    students={students} 
-                    isLoading={isLoading} 
-                    error={error} 
-                    onDelete={handleDeleteStudent} 
+                <StudentTable
+                    students={students}
+                    isLoading={isLoading}
+                    error={error}
+                    onDelete={deleteStudent}
                     onEdit={setEditingStudent}
                 />
             </div>
