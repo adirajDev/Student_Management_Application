@@ -1,5 +1,9 @@
 import { useState, useMemo } from "react";
 import SearchBar from "./SearchBar";
+import Loading from "../utils/Loading";
+import EmptyTable from "../utils/EmptyTable";
+import NoResultsFound from "../utils/NoResultsFound";
+import Error from "../utils/Error";
 
 const StudentTable = ({ students, isLoading, error, onEdit, onDelete }) => {
 
@@ -15,42 +19,15 @@ const StudentTable = ({ students, isLoading, error, onEdit, onDelete }) => {
         );
     }, [students, searchTerm]);
 
-    // UI State: Loading
-    if (isLoading) {
-        return (
-            <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center h-full min-h-75">
-                <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-                <p className="text-gray-500 font-medium">Fetching student records...</p>
-            </div>
-        );
-    }
+    // Loading
+    if (isLoading) {<Loading />}
 
-    // UI State: Error
-    if (error) {
-        return (
-            <div className="bg-red-50 p-6 rounded-xl border border-red-200 h-full min-h-75 flex items-center justify-center text-center">
-                <div>
-                    <svg className="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <h3 className="text-lg font-medium text-red-800">Failed to load data</h3>
-                    <p className="text-red-600 mt-1">{error}</p>
-                </div>
-            </div>
-        );
-    }
+    // Error getting data
+    if (error) {<Error />}
 
     // UI State: No students at all
     if (!students || students.length === 0) {
-        return (
-            <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-100 h-full min-h-75 flex flex-col items-center justify-center text-center">
-                <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-                <h3 className="text-lg font-medium text-gray-900">No records available</h3>
-                <p className="text-gray-500 mt-1 max-w-sm">There are currently no students enrolled. Use the form to add a new student.</p>
-            </div>
-        );
+        <EmptyTable />
     }
 
     // UI State: Data Render
@@ -64,15 +41,7 @@ const StudentTable = ({ students, isLoading, error, onEdit, onDelete }) => {
             />
 
             {filteredStudents.length === 0 ? (
-                <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-100 h-full min-h-75 flex flex-col items-center justify-center text-center">
-                    <svg className="w-16 h-16 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z" />
-                    </svg>
-                    <h3 className="text-lg font-medium text-gray-900">No matches found</h3>
-                    <p className="text-gray-500 mt-1 max-w-sm">
-                        No students match "{searchTerm}". Try a different name or clear the search.
-                    </p>
-                </div>
+                <NoResultsFound searchTerm={searchTerm} />
             ) : (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
