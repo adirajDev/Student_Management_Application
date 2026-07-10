@@ -43,58 +43,49 @@ const Main = () => {
 
     // POST request to add new student
     const handleAddStudent = async (newStudent) => {
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newStudent),
-            });
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newStudent),
+        });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to add student.');
-            }
-
-            const createdStudent = await response.json();
-            // Update local state instantly without a page refresh
-            setStudents((prevStudents) => {
-                const updatedList = [...prevStudents, createdStudent];
-                return updatedList.sort((a, b) => a.name.localeCompare(b.name));
-            });
-        } catch (err) {
-            alert(`Error: ${err.message}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to add student.');
         }
+
+        const createdStudent = await response.json();
+
+        setStudents((prevStudents) => {
+            const updatedList = [...prevStudents, createdStudent];
+            return updatedList.sort((a, b) => a.name.localeCompare(b.name));
+        });
     };
 
     // PUT request to update an existing student
     const handleUpdateStudent = async (id, updatedData) => {
-        console.log("update function called")
-        try {
-            const response = await fetch(`${API_URL}/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData),
-            });
+        const response = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData),
+        });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to update student.');
-            }
-
-            const updatedStudent = await response.json();
-            
-            // Instantly update the UI and re-sort
-            setStudents((prev) => 
-                prev.map(student => student.id === id ? updatedStudent : student)
-                    .sort((a, b) => a.name.localeCompare(b.name))
-            );
-            
-            setEditingStudent(null);
-        } catch (err) {
-            alert(`Error: ${err.message}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to update student.');
         }
+
+        const updatedStudent = await response.json();
+        
+        // Instantly update the UI and re-sort
+        setStudents((prev) => 
+            prev.map(student => student.id === id ? updatedStudent : student)
+                .sort((a, b) => a.name.localeCompare(b.name))
+        );
+            
+        setEditingStudent(null);
     };
 
     const handleDeleteStudent = async (id) => {
