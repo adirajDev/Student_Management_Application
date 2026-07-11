@@ -1,4 +1,3 @@
-import { useState, useMemo } from "react";
 import SearchBar from "./SearchBar";
 import Loading from "../utils/Loading";
 import EmptyTable from "../utils/EmptyTable";
@@ -14,7 +13,7 @@ const StudentTable = ({ students, isLoading, error, onEdit, onDelete }) => {
     if (isLoading) return <Loading />
 
     // Error getting data
-    if (error) return <Error />
+    if (error) return <Error error={error} />
 
     // UI State: No students at all
     if (!students || students.length === 0) return <EmptyTable />

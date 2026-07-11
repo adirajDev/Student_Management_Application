@@ -1,5 +1,3 @@
-import React from 'react'
-
 const EmptyTable = () => {
     return (
         <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-100 h-full min-h-75 flex flex-col items-center justify-center text-center">

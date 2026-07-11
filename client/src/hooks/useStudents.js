@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@clerk/react';
 
 const API_URL = 'http://localhost:5000/students';
 
@@ -6,15 +7,46 @@ const API_URL = 'http://localhost:5000/students';
 // so the frontend table updates automatically without a manual refetch.
 
 const useStudents = () => {
+    const { getToken, isLoaded, isSignedIn } = useAuth();
     const [students, setStudents] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
 
+    const authFetch = useCallback(async (url, options = {}) => {
+        const token = await getToken();
+        const headers = new Headers(options.headers);
+
+        if (token) {
+            headers.set('Authorization', `Bearer ${token}`);
+        }
+
+        return fetch(url, {
+            ...options,
+            headers,
+        });
+    }, [getToken]);
+
+    const getErrorMessage = async (response, fallback) => {
+        try {
+            const errorData = await response.json();
+            return errorData.error || fallback;
+        } catch {
+            return fallback;
+        }
+    };
+
     const fetchStudents = useCallback(async () => {
+        if (!isLoaded || !isSignedIn) {
+            setStudents([]);
+            return;
+        }
+
         setIsLoading(true);
         try {
-            const response = await fetch(API_URL);
-            if (!response.ok) throw new Error('Failed to fetch students from the server.');
+            const response = await authFetch(API_URL);
+            if (!response.ok) {
+                throw new Error(await getErrorMessage(response, 'Failed to fetch students from the server.'));
+            }
 
             const data = await response.json();
             setStudents(data);
@@ -24,23 +56,23 @@ const useStudents = () => {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [authFetch, isLoaded, isSignedIn]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchStudents();
     }, [fetchStudents]);
 
     // POST request to add a new student
     const addStudent = async (newStudent) => {
-        const response = await fetch(API_URL, {
+        const response = await authFetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newStudent),
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to add student.');
+            throw new Error(await getErrorMessage(response, 'Failed to add student.'));
         }
 
         const createdStudent = await response.json();
@@ -53,15 +85,14 @@ const useStudents = () => {
 
     // PUT request to update an existing student
     const updateStudent = async (id, updatedData) => {
-        const response = await fetch(`${API_URL}/${id}`, {
+        const response = await authFetch(`${API_URL}/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedData),
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to update student.');
+            throw new Error(await getErrorMessage(response, 'Failed to update student.'));
         }
 
         const updatedStudent = await response.json();
@@ -76,11 +107,13 @@ const useStudents = () => {
     // DELETE request to remove a student
     const deleteStudent = async (id) => {
         try {
-            const response = await fetch(`${API_URL}/${id}`, {
+            const response = await authFetch(`${API_URL}/${id}`, {
                 method: 'DELETE',
             });
 
-            if (!response.ok) throw new Error('Failed to delete student.');
+            if (!response.ok) {
+                throw new Error(await getErrorMessage(response, 'Failed to delete student.'));
+            }
 
             setStudents((prev) => prev.filter((student) => student.id !== id));
         } catch (err) {

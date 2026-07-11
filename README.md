@@ -63,6 +63,36 @@ The following validations must be implemented:
 * CORS
 * JSON APIs
 
+## Clerk Authentication Setup
+
+Create a Clerk application from the Clerk Dashboard, then copy the API keys into local env files.
+
+`client/.env`
+```env
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_publishable_key
+```
+
+`server/.env`
+```env
+CLERK_PUBLISHABLE_KEY=pk_test_your_publishable_key
+CLERK_SECRET_KEY=sk_test_your_secret_key
+CLIENT_URL=http://localhost:5173
+```
+
+Run the app:
+
+```bash
+cd server
+npm run dev
+```
+
+```bash
+cd client
+npm run dev
+```
+
+The React app shows Clerk sign-in and sign-up screens before the student dashboard. The Express `/students` API requires a valid Clerk session token.
+
 ## Optional (Bonus)
 If time permits, implement any of the following:
 * Edit student details
@@ -78,4 +108,3 @@ If time permits, implement any of the following:
 * Follow good naming conventions.
 * Ensure the application runs without errors.
 * Commit your code regularly if using Git.
-

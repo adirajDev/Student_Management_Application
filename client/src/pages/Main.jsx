@@ -17,6 +17,7 @@ const Main = () => {
             {/* Left Column: Form */}
             <div className="lg:col-span-1">
                 <StudentForm
+                    key={editingStudent?.id || 'new-student'}
                     editingStudent={editingStudent}
                     onAdd={addStudent}
                     onUpdate={handleUpdateStudent}
