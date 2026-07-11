@@ -1,6 +1,4 @@
-import React from 'react'
-
-const Error = () => {
+const Error = ({ error }) => {
     return (
         <div className="bg-red-50 p-6 rounded-xl border border-red-200 h-full min-h-75 flex items-center justify-center text-center">
             <div>

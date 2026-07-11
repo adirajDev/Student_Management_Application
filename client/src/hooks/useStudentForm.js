@@ -1,8 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const EMPTY_FORM = { name: '', email: '', course: '' };
+
+const getInitialFormData = (editingStudent) => {
+    if (!editingStudent) {
+        return EMPTY_FORM;
+    }
+
+    return {
+        name: editingStudent.name,
+        email: editingStudent.email,
+        course: editingStudent.course,
+    };
+};
 
 // Returns an error message string, or '' if the data is valid.
 const validate = ({ name, email, course }) => {
@@ -16,22 +28,8 @@ const validate = ({ name, email, course }) => {
 };
 
 const useStudentForm = ({ editingStudent, onAdd, onUpdate }) => {
-    const [formData, setFormData] = useState(EMPTY_FORM);
+    const [formData, setFormData] = useState(() => getInitialFormData(editingStudent));
     const [validationError, setValidationError] = useState('');
-
-    // Populate the form when entering edit mode, reset it when leaving.
-    useEffect(() => {
-        if (editingStudent) {
-            setFormData({
-                name: editingStudent.name,
-                email: editingStudent.email,
-                course: editingStudent.course,
-            });
-            setValidationError('');
-        } else {
-            setFormData(EMPTY_FORM);
-        }
-    }, [editingStudent]);
 
     const handleChange = (e) => {
         setFormData((prev) => ({

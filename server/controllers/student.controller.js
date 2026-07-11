@@ -1,14 +1,27 @@
-let students = [];
-let nextId = 1;
+const studentStores = new Map();
+
+const getStudentStore = (userId) => {
+    if (!studentStores.has(userId)) {
+        studentStores.set(userId, {
+            students: [],
+            nextId: 1,
+        });
+    }
+
+    return studentStores.get(userId);
+};
 
 // Fetch all students
 export const getStudents = (req, res) => {
+    const { students } = getStudentStore(req.userId);
     const sortedStudents = [...students].sort((a, b) => a.name.localeCompare(b.name));
     res.status(200).json(sortedStudents);
 };
 
 // Add a new student
 export const createStudent = (req, res) => {
+    const store = getStudentStore(req.userId);
+    const { students } = store;
     const { name, email, course } = req.body;
 
     if (!name || !email || !course) {
@@ -32,7 +45,7 @@ export const createStudent = (req, res) => {
 
     // Create and store
     const newStudent = { 
-        id: nextId++, 
+        id: store.nextId++,
         name, 
         email, 
         course 
@@ -44,6 +57,7 @@ export const createStudent = (req, res) => {
 };
 
 export const updateStudent = (req, res) => {
+    const { students } = getStudentStore(req.userId);
     const studentId = parseInt(req.params.id, 10);
     const { name, email, course } = req.body;
 
@@ -81,6 +95,7 @@ export const updateStudent = (req, res) => {
 
 // Delete a student
 export const deleteStudent = (req, res) => {
+    const { students } = getStudentStore(req.userId);
     const studentId = parseInt(req.params.id, 10);
     const studentIndex = students.findIndex(s => s.id === studentId);
     
